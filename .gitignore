@@ -1,0 +1,17 @@
+/.cache/
+/.lsp-session-v1
+/.mc-lists.el
+/auto-save-list/
+/auto-save/
+/backups/
+/eln-cache/
+/ede-projects.el
+/history
+/init.html
+/projectile-bookmarks.eld
+/packages/
+/recentf
+/undo-tree-history/
+/url/
+/tramp
+/transient/
