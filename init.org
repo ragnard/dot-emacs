@@ -1,0 +1,580 @@
+#+TITLE:  .emacs file
+
+Based on John Wiegley's dot-emacs: https://github.com/jwiegley/dot-emacs
+
+* Startup
+
+** Set the garbage collector threshold, to avoid collections
+
+#+begin_src emacs-lisp
+  (setq gc-cons-percentage 0.5
+        gc-cons-threshold (* 128 1024 1024))
+#+end_src
+
+** Report time spent loading this module
+
+#+begin_src emacs-lisp
+  (defconst emacs-start-time (current-time))
+
+  (defun report-time-since-load (&optional suffix)
+    (message "Loading init...done (%.3fs)%s"
+             (float-time (time-subtract (current-time) emacs-start-time))
+             suffix))
+
+  (add-hook 'after-init-hook
+            #'(lambda () (report-time-since-load " [after-init]"))
+            t)
+#+end_src
+
+** Load =use-package= for all the declarations below
+
+#+begin_src emacs-lisp
+  (eval-and-compile
+    (defsubst emacs-path (path)
+      (expand-file-name path user-emacs-directory))
+
+    (setq package-enable-at-startup nil
+          load-path
+          (append (list (emacs-path "use-package"))
+                  (delete-dups load-path)
+                  (list (emacs-path "lisp")))))
+
+  (require 'use-package)
+
+  (setq use-package-verbose init-file-debug
+        use-package-expand-minimally (not init-file-debug)
+        use-package-compute-statistics nil
+        debug-on-error init-file-debug)
+
+
+#+end_src
+
+** Add MELPA
+
+#+begin_src emacs-lisp
+  (require 'package)
+  
+  (add-to-list 'package-archives
+               '("melpa" . "https://melpa.org/packages/") t)  
+#+end_src
+
+** Garbage collect at the end of startup
+
+#+begin_src emacs-lisp
+  (add-hook 'after-init-hook #'garbage-collect t)
+#+end_src
+
+
+* Helpers
+
+#+begin_src emacs-lisp
+  (defun reload-init ()
+    (interactive)
+    (org-babel-load-file "~/.emacs.d/init.org"))
+#+end_src
+
+
+* Packages
+
+#+begin_src emacs-lisp
+  (use-package diminish
+    :ensure t)
+
+  (use-package winner
+    :init
+    (winner-mode 1))
+
+  (use-package windmove
+    :ensure t
+    :config
+    (windmove-default-keybindings))
+
+  ;; Save a list of recent files visited. (open recent file with C-x f)
+  (use-package recentf
+    :init
+    (setq recentf-max-saved-items 100)
+    (recentf-mode 1))
+
+  ;; Save minibuffer history
+  (use-package savehist
+    :init
+    (savehist-mode 1)
+    (setq history-length 1000))
+
+  (use-package uniquify
+    :init
+    (setq uniquify-buffer-name-style 'forward))
+#+end_src
+
+** org
+
+#+begin_src emacs-lisp
+  (use-package org
+    :ensure t
+    :requires htmlize
+    :config
+    ;; (unbind-key "M-e" org-mode-map)
+    (setq org-directory "~/notes"))
+
+  (use-package htmlize
+    :ensure t)
+#+end_src
+
+** yasnippet
+
+#+begin_src emacs-lisp
+  (use-package yasnippet
+    :ensure t
+    :config
+    (yas-reload-all)
+    (add-hook 'prog-mode-hook #'yas-minor-mode))
+#+end_src
+
+** dired
+
+#+begin_src emacs-lisp
+  (use-package dired
+    :config
+    (setq dired-dwim-target t)
+    ;;(setq insert-directory-program "/usr/local/bin/gls")
+    (setq dired-listing-switches "-ahl --group-directories-first"))
+
+  (use-package dired-x)
+  (use-package wdired)
+#+end_src
+
+** wgrep
+
+#+begin_src emacs-lisp
+  (use-package wgrep
+    :ensure t)
+#+end_src
+
+** nhexl
+
+#+begin_src emacs-lisp
+  (use-package nhexl-mode
+    :ensure t)
+#+end_src
+
+** poke
+
+#+begin_src emacs-lisp
+  (use-package poke-mode
+    :ensure t)
+
+  (use-package poke
+    :ensure t)
+#+end_src
+
+** magit
+
+#+begin_src emacs-lisp
+  (use-package magit
+    :ensure t
+    :init
+    (setq vc-handled-backends nil)
+    :bind ("C-x m" . magit-status))
+
+  (use-package magit-svn
+    :ensure t)
+#+end_src
+
+** csv
+
+#+begin_src emacs-lisp
+  (use-package csv-mode
+    :ensure t)
+#+end_src
+
+** man
+
+#+begin_src emacs-lisp
+  (use-package man
+    :config
+    (setq Man-notify-method 'pushy))
+#+end_src
+
+** company
+
+#+begin_src emacs-lisp
+  (use-package company
+    :ensure t
+    :diminish company-mode
+    :commands (company company-indent-or-complete-common)
+    :config
+    (global-company-mode)
+    (setq company-idle-delay nil)
+    :bind
+    (:map company-mode-map
+          ("TAB" . company-indent-or-complete-common)))
+#+end_src
+
+** eglot
+
+#+begin_src emacs-lisp
+  (use-package eglot
+    :ensure t
+    :hook
+    ((python-mode . eglot-ensure)
+     (c-mode . eglot-ensure)
+     (c++-mode . eglot-ensure)
+     (java-mode . eglot-ensure)
+     (rust-mode . eglot-ensure)
+     (go-mode . eglot-ensure))
+    :bind
+    (("M-RET" . eglot-code-actions)
+     ("C-c C-l" . eglot-format-buffer)))
+#+end_src
+
+** sql
+
+#+begin_src emacs-lisp
+(use-package sql
+  :ensure t)
+
+(use-package sql-clickhouse
+  :ensure t
+  :custom
+  ;(sql-clickhouse-options '("-f" "PrettySpaceNoEscapes"))
+  (sql-clickhouse-options nil))
+  
+#+end_src
+
+** paredit
+
+#+begin_src emacs-lisp
+  (use-package paredit
+    :ensure t)
+#+end_src
+
+** protobuf
+
+#+begin_src emacs-lisp
+  (use-package protobuf-mode
+  :ensure t)
+
+#+end_src
+
+** flycheck
+
+#+begin_src emacs-lisp
+  (use-package flycheck
+  :ensure t
+  :init
+  (global-flycheck-mode)
+  :bind
+  (("C-c C-e" . flycheck-list-errors)))
+#+end_src
+
+
+** restclient
+
+#+begin_src emacs-lisp
+  (use-package restclient
+  :ensure t)
+
+#+end_src
+
+** tree-sitter
+
+#+begin_src emacs-lisp
+  (use-package tree-sitter
+    :ensure t)
+
+  (use-package tree-sitter-langs
+    :ensure t)
+#+end_src
+
+** web-mode
+
+#+begin_src emacs-lisp
+  (use-package web-mode
+    :ensure t
+    :mode (("\\.svelte\\'" . web-mode))
+    :config
+    (setq web-mode-markup-indent-offset 2)
+    (setq web-mode-code-indent-offset 2)
+    (setq web-mode-script-padding 2)
+    (unbind-key (kbd "C-c C-l") web-mode-map))
+#+end_src
+
+** clojure
+
+#+begin_src emacs-lisp
+  (use-package clojure-mode
+    :ensure t
+    :init
+    (add-hook 'clojure-mode-hook (lambda () (paredit-mode 1)))
+    (setq clojure-indent-style :align-arguments)
+    :config
+    (put-clojure-indent 'match 'defun)
+    (put-clojure-indent 'defrecord 'defun)
+    (put-clojure-indent 'alt!! 'defun)
+    (put-clojure-indent 'alt! 'defun)
+    (put-clojure-indent 'fnk 'defun)
+    (put-clojure-indent 'context* 'defun)
+    (put-clojure-indent 'GET* 'defun)
+    (put-clojure-indent 'POST* 'defun)
+    (put-clojure-indent 'PUT* 'defun)
+    (put-clojure-indent 'DELETE* 'defun))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package cider
+    :ensure t
+    :init
+    (add-hook 'cider-mode-hook #'eldoc-mode)
+    (add-hook 'cider-repl-mode-hook (lambda () (paredit-mode 1)))
+                                          ;(setq eldoc-idle-delay 0.1)
+    (setq cider-repl-pop-to-buffer-on-connect nil)
+    (setq cider-popup-stacktraces t)
+    (setq cider-repl-popup-stacktraces t)
+    (setq cider-auto-select-error-buffer t)
+    (setq cider-use-overlays nil)
+    (setq cider-repl-display-in-current-window nil)
+    (setq cider-repl-prompt-function #'cider-repl-prompt-abbreviated)
+    (setq cider-repl-display-help-banner nil)
+                                          ;(setq cider-repl-tab-command #'company-indent-or-complete-common)
+    )
+
+#+end_src
+
+** comint
+
+#+begin_src emacs-lisp
+  (use-package comint
+    :config
+    (defun comint-clear-buffer ()
+      (interactive)
+      (let ((comint-buffer-maximum-size 0))
+        (comint-truncate-buffer)))
+
+    (bind-keys :map comint-mode-map
+               ("C-c M-o" . comint-clear-buffer)))
+#+end_src
+
+** rust
+
+#+begin_src emacs-lisp
+  (use-package rust-mode
+    :ensure t
+    :hook (rust-mode . eglot-ensure)
+    :config
+                                          ;(rust-enable-format-on-save)
+    (flymake-mode-off)
+    :bind
+    (("C-c C-k" . rust-compile)
+     ("C-c C-r" . rust-run)
+     ("C-c C-t" . rust-test)))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package flycheck-rust
+    :ensure t
+    :init
+    :hook (flycheck-mode . flycheck-rust-setup))
+#+end_src
+
+** eldoc
+
+#+begin_src emacs-lisp
+  (use-package eldoc
+    :ensure t
+    :diminish eldoc-mode
+    :bind
+    (("C-c h" . eldoc))
+    :config
+    (setq eldoc-echo-area-use-multiline-p nil))
+#+end_src
+
+** javascript
+
+#+begin_src emacs-lisp
+  (use-package js
+    :custom
+    (js-indent-level 2))
+
+#+end_src
+
+** yaml
+
+#+begin_src emacs-lisp
+  (use-package yaml-mode
+    :ensure t)
+#+end_src
+
+** toml
+
+#+begin_src emacs-lisp
+  (use-package toml-mode
+    :ensure t)
+#+end_src
+
+** python
+
+#+begin_src emacs-lisp
+  (use-package elpy
+    :ensure t
+    :config
+    (defun python-format-before-save-hook ()
+      (elpy-format-code))
+
+    (add-hook 'elpy-mode-hook
+              (lambda () (add-hook 'before-save-hook
+                                   #'python-format-before-save-hook nil
+                                   'local)))
+    :config
+    (setq elpy-modules '(elpy-module-sane-defaults
+                         elpy-module-company
+                         elpy-module-eldoc
+                         elpy-module-pyvenv))
+    :bind (:map python-mode-map
+                ("C-x C-e" . elpy-shell-send-statement-and-step)
+                ("C-c C-k" . elpy-shell-send-buffer)
+                ("C-c C-z" . elpy-shell-switch-to-shell)))
+
+#+end_src
+
+** zig
+
+#+begin_src emacs-lisp
+  (use-package zig-mode
+    :ensure t)
+#+end_src
+
+** octave
+
+#+begin_src emacs-lisp
+  (use-package octave
+    :ensure t
+    :mode (("\\.m\\'" . octave-mode))
+    :bind (:map octave-mode-map
+                ("C-x C-e" . octave-send-line)
+                ("C-c C-k" . octave-send-buffer)))
+
+#+end_src
+
+** lua
+
+#+begin_src emacs-lisp
+  (use-package lua-mode
+    :ensure t
+    :custom
+    (lua-default-application "lua"))
+#+end_src
+
+** go
+
+#+begin_src emacs-lisp
+  (use-package go-mode
+    :ensure t
+    :init
+    (setq gofmt-command "goimports")
+    :hook
+    (before-save . gofmt-before-save))
+#+end_src
+
+** ediff
+
+#+begin_src emacs-lisp
+  ;; A saner ediff
+  (use-package ediff
+    :init
+    (setq ediff-diff-options "-w")
+    (setq ediff-split-window-function 'split-window-horizontally)
+    (setq ediff-window-setup-function 'ediff-setup-windows-plain))
+#+end_src
+
+** orderless
+
+#+begin_src emacs-lisp
+  (use-package orderless
+    :ensure t
+    :custom
+    (completion-styles '(orderless basic))
+    (completion-category-overrides '((file (styles basic partial-completion)))))
+#+end_src
+
+** vertico 
+#+begin_src emacs-lisp
+  (use-package vertico
+    :ensure t
+    :init
+    (vertico-mode))
+#+end_src
+
+#+begin_src emacs-lisp
+  (use-package vertico-directory
+    :after vertico
+    :ensure nil
+    ;; More convenient directory navigation commands
+    :bind
+    (:map vertico-map
+          ("RET" . vertico-directory-enter)
+          ("DEL" . vertico-directory-delete-char)
+          ("M-DEL" . vertico-directory-delete-word)))
+#+end_src
+
+** consult
+  
+#+begin_src emacs-lisp
+  (use-package consult
+    :ensure t
+    :custom
+    (consult-line-start-from-top t)
+    :bind
+    (("C-s" . consult-line)
+     ("C-x b" . consult-buffer)
+     ("M-y" . consult-yank-pop)))
+#+end_src
+
+** projectile
+
+#+begin_src emacs-lisp
+  (use-package projectile
+    :ensure t
+    :config
+    (setq projectile-completion-system 'ivy)
+    :init
+    (projectile-mode)
+    :bind-keymap ("C-c p" . projectile-command-map))
+#+end_src
+
+** undo-tree
+
+#+begin_src emacs-lisp
+  (use-package undo-tree
+    :ensure t
+    :diminish undo-tree-mode
+    :init
+    (global-undo-tree-mode))
+#+end_src
+
+** ripgrep
+
+#+begin_src emacs-lisp
+  (use-package ripgrep
+    :ensure t)
+#+end_src
+
+** expand-region
+
+#+begin_src emacs-lisp
+  (use-package expand-region
+    :ensure t
+    :bind
+    (("C-c '" . er/expand-region)))
+#+end_src
+
+** multiple-cursors
+
+#+begin_src emacs-lisp
+  (use-package multiple-cursors
+    :ensure t
+    :bind
+    (("C-c C-d" . mc/mark-next-like-this)
+     ("C-c C-a" . mc/mark-all-like-this)))
+#+end_src
+
+
