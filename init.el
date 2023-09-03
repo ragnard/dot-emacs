@@ -1,7 +1,17 @@
+;;------------------------------------------------------------------------------
+;; My init.
+;;
+;; Lots stolen from John Wiegley's dot-emacs: https://github.com/jwiegley/dot-emacs
+;;
+
+(defconst emacs-start-time (current-time))
+
 (setq gc-cons-percentage 0.5
       gc-cons-threshold (* 128 1024 1024))
 
-(defconst emacs-start-time (current-time))
+(add-hook 'after-init-hook #'garbage-collect t)
+
+
 
 (defun report-time-since-load (&optional suffix)
   (message "Loading init...done (%.3fs)%s"
@@ -11,6 +21,7 @@
 (add-hook 'after-init-hook
           #'(lambda () (report-time-since-load " [after-init]"))
           t)
+
 
 (eval-and-compile
   (defsubst emacs-path (path)
@@ -29,108 +40,218 @@
       use-package-compute-statistics nil
       debug-on-error init-file-debug)
 
+
+
 (require 'package)
 
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/") t)
 
-(add-hook 'after-init-hook #'garbage-collect t)
 
-(defun reload-init ()
-  (interactive)
-  (org-babel-load-file "~/.emacs.d/init.org"))
 
-(use-package diminish
-  :ensure t)
 
-(use-package winner
-  :init
-  (winner-mode 1))
 
-(use-package windmove
+;; (defun reload-init ()
+;;   (interactive)
+;;   (org-babel-load-file "~/.emacs.d/init.org"))
+
+
+;;------------------------------------------------------------------------------
+;; Emacs environment
+
+(defconst emacs-environment (or (getenv "EMACS_HOME") "~/.emacs.d/"))
+
+(defconst user-data-directory
+  (emacs-path "data"))
+
+(defun user-data (dir)
+  (expand-file-name dir user-data-directory))
+
+
+(use-package emacs
+  :custom
+
+  ;; C source code
+  (auto-hscroll-mode 'current-line)
+  (auto-save-interval 64)
+  (auto-save-timeout 2)
+  (enable-recursive-minibuffers t)
+  ;; (fill-column 78)
+  (history-delete-duplicates t)
+  (history-length 200)
+  (load-prefer-newer t)
+  (menu-bar-mode nil)
+  (message-log-max 16384)
+  (redisplay-dont-pause t)
+  (tool-bar-mode nil)
+  (undo-limit 800000)
+  (use-short-answers t)
+  (visible-bell nil)
+  (x-stretch-cursor t)
+
+  ;; scroll-bar
+  (scroll-bar-mode nil)
+
+  ;; startup.el
+  (auto-save-list-file-prefix (user-data "auto-save-list/.saves-"))
+  (inhibit-startup-screen t)
+  (initial-buffer-choice nil)
+  (initial-major-mode 'fundamental-mode)
+  (initial-scratch-message "")
+
+  ;; files.el
+  (backup-directory-alist `(("." . ,(user-data "backups"))))
+  (delete-old-versions t)
+  (large-file-warning-threshold nil)
+  (save-abbrevs 'silently)
+  (trash-directory "~/.trash")
+  (version-control t)
+
+  ;; simple.el
+  (backward-delete-char-untabify-method 'untabify)
+  (column-number-mode t)
+  (indent-tabs-mode nil)
+  (kill-do-not-save-duplicates t)
+  (kill-ring-max 500)
+  (kill-whole-line nil)
+  (line-number-mode t)
+  (next-line-add-newlines nil)
+  (save-interprogram-paste-before-kill t)
+
+  ;; paren.el
+  (show-paren-delay 0)
+
+  ;; frame.el
+  ;; (window-divider-default-bottom-width 1)
+  ;; (window-divider-default-places 'bottom-only)
+
+  ;; indent.el
+  (tab-always-indent 'complete)
+
+  ;; cus-edit.el
+  (custom-file (user-data "settings.el"))
+
+  :custom-face
+  (default ((t (:family "Iosevka SS08" :height 150))))
+  (variable-pitch ((t (:family "Iosevka SS08"))))
+  (fixed-pitch ((t (:family "Iosevka SS08"))))
+  (cursor ((t (:background "hotpink"))))
+  (vertical-border ((t (:background "gray75" :foreground "gray75"))))
+  ;; (highlight ((t (:background "lightgray"))))
+
+  )
+
+
+
+;;------------------------------------------------------------------------------
+;; Packages
+
+;; (use-package company
+;;   :ensure t
+;;   :diminish company-mode
+;;   :commands (company company-indent-or-complete-common)
+;;   :config
+;;   (global-company-mode)
+;;   (setq company-idle-delay nil)
+;;   :bind
+;;   (:map company-mode-map
+;;         ("TAB" . company-indent-or-complete-common)))
+
+(use-package cider
   :ensure t
-  :config
-  (windmove-default-keybindings))
-
-;; Save a list of recent files visited. (open recent file with C-x f)
-(use-package recentf
   :init
-  (setq recentf-max-saved-items 100)
-  (recentf-mode 1))
+  (add-hook 'cider-mode-hook #'eldoc-mode)
+  (add-hook 'cider-repl-mode-hook (lambda () (paredit-mode 1)))
+                                        ;(setq eldoc-idle-delay 0.1)
+  :custom
+  (cider-repl-pop-to-buffer-on-connect nil)
+  (cider-popup-stacktraces t)
+  (cider-repl-popup-stacktraces t)
+  (cider-auto-select-error-buffer t)
+  (cider-use-overlays nil)
+  (cider-repl-display-in-current-window nil)
+  (cider-repl-prompt-function #'cider-repl-prompt-abbreviated)
+  (cider-repl-display-help-banner nil)
+  ;;(setq cider-repl-tab-command #'company-indent-or-complete-common)
+  )
 
-;; Save minibuffer history
-(use-package savehist
-  :init
-  (savehist-mode 1)
-  (setq history-length 1000))
-
-(use-package uniquify
-  :init
-  (setq uniquify-buffer-name-style 'forward))
-
-(use-package dired
-  :config
-  (setq dired-dwim-target t)
-  ;;(setq insert-directory-program "/usr/local/bin/gls")
-  (setq dired-listing-switches "-ahl --group-directories-first"))
-
-(use-package dired-x)
-(use-package wdired)
-
-(use-package wgrep
-  :ensure t)
-
-(use-package yasnippet
-  :ensure t
-  :config
-  (yas-reload-all)
-  (add-hook 'prog-mode-hook #'yas-minor-mode))
-
-(use-package nhexl-mode
-  :ensure t)
-
-(use-package poke-mode
-  :ensure t)
-
-(use-package poke
-  :ensure t)
-
-(use-package org
-  :ensure t
-  :requires htmlize
-  :config
-  ;; (unbind-key "M-e" org-mode-map)
-  (setq org-directory "~/notes"))
-
-(use-package htmlize
-  :ensure t)
-
-(use-package magit
+(use-package clojure-mode
   :ensure t
   :init
-  (setq vc-handled-backends nil)
-  :bind ("C-x m" . magit-status))
+  (add-hook 'clojure-mode-hook (lambda () (paredit-mode 1)))
+  :config
+  (put-clojure-indent 'match 'defun)
+  (put-clojure-indent 'defrecord 'defun)
+  (put-clojure-indent 'alt!! 'defun)
+  (put-clojure-indent 'alt! 'defun)
+  (put-clojure-indent 'fnk 'defun)
+  (put-clojure-indent 'context* 'defun)
+  (put-clojure-indent 'GET* 'defun)
+  (put-clojure-indent 'POST* 'defun)
+  (put-clojure-indent 'PUT* 'defun)
+  (put-clojure-indent 'DELETE* 'defun)
+  :custom
+  (clojure-indent-style 'align-arguments))
 
-(use-package magit-svn
-  :ensure t)
+(use-package comint
+  :config
+  (defun comint-clear-buffer ()
+    (interactive)
+    (let ((comint-buffer-maximum-size 0))
+      (comint-truncate-buffer)))
+
+  :bind
+  (:map comint-mode-map
+        ("C-c M-o" . comint-clear-buffer)))
+
+(use-package consult
+  :ensure t
+  :custom
+  (consult-line-start-from-top t)
+  :bind
+  (("C-s" . consult-line)
+   ("C-x b" . consult-buffer)
+   ("C-x i" . consult-imenu)
+   ("M-y" . consult-yank-pop)))
+
+(use-package corfu
+  :ensure t
+  :init
+  (global-corfu-mode)
+  :custom
+  (corfu-cycle t))
+
+(use-package corfu-terminal
+  :ensure t
+  :diminish
+  :init
+  (unless (display-graphic-p)
+    (corfu-terminal-mode)))
 
 (use-package csv-mode
   :ensure t)
 
-(use-package man
-  :config
-  (setq Man-notify-method 'pushy))
+(use-package delsel
+  :init
+  (delete-selection-mode))
 
-(use-package company
-  :ensure t
-  :diminish company-mode
-  :commands (company company-indent-or-complete-common)
-  :config
-  (global-company-mode)
-  (setq company-idle-delay nil)
-  :bind
-  (:map company-mode-map
-        ("TAB" . company-indent-or-complete-common)))
+(use-package diminish
+  :ensure t)
+
+(use-package dired
+  :init
+  (use-package dired-x)
+  (use-package wdired)
+  :custom
+  (dired-dwim-target t)
+  (dired-listing-switches "-ahl --group-directories-first"))
+
+;; A saner ediff
+(use-package ediff
+  :custom
+  (ediff-diff-options "-w")
+  (ediff-split-window-function 'split-window-horizontally)
+  (ediff-window-setup-function 'ediff-setup-windows-plain))
 
 (use-package eglot
   :ensure t
@@ -142,86 +263,9 @@
    (rust-mode . eglot-ensure)
    (go-mode . eglot-ensure))
   :bind
-  (("M-RET" . eglot-code-actions)
-   ("C-c C-l" . eglot-format-buffer)))
-
-(use-package paredit
-  :ensure t)
-
-(use-package tree-sitter
-  :ensure t)
-
-(use-package tree-sitter-langs
-  :ensure t)
-
-(use-package web-mode
-  :ensure t
-  :mode (("\\.svelte\\'" . web-mode))
-  :config
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-code-indent-offset 2)
-  (setq web-mode-script-padding 2)
-  (unbind-key (kbd "C-c C-l") web-mode-map))
-
-(use-package clojure-mode
-  :ensure t
-  :init
-  (add-hook 'clojure-mode-hook (lambda () (paredit-mode 1)))
-  (setq clojure-indent-style :align-arguments)
-  :config
-  (put-clojure-indent 'match 'defun)
-  (put-clojure-indent 'defrecord 'defun)
-  (put-clojure-indent 'alt!! 'defun)
-  (put-clojure-indent 'alt! 'defun)
-  (put-clojure-indent 'fnk 'defun)
-  (put-clojure-indent 'context* 'defun)
-  (put-clojure-indent 'GET* 'defun)
-  (put-clojure-indent 'POST* 'defun)
-  (put-clojure-indent 'PUT* 'defun)
-  (put-clojure-indent 'DELETE* 'defun))
-
-(use-package cider
-  :ensure t
-  :init
-  (add-hook 'cider-mode-hook #'eldoc-mode)
-  (add-hook 'cider-repl-mode-hook (lambda () (paredit-mode 1)))
-                                        ;(setq eldoc-idle-delay 0.1)
-  (setq cider-repl-pop-to-buffer-on-connect nil)
-  (setq cider-popup-stacktraces t)
-  (setq cider-repl-popup-stacktraces t)
-  (setq cider-auto-select-error-buffer t)
-  (setq cider-use-overlays nil)
-  (setq cider-repl-display-in-current-window nil)
-  (setq cider-repl-prompt-function #'cider-repl-prompt-abbreviated)
-  (setq cider-repl-display-help-banner nil)
-                                        ;(setq cider-repl-tab-command #'company-indent-or-complete-common)
-  )
-
-(use-package comint
-  :config
-  (defun comint-clear-buffer ()
-    (interactive)
-    (let ((comint-buffer-maximum-size 0))
-      (comint-truncate-buffer)))
-
-  (bind-keys :map comint-mode-map
-             ("C-c M-o" . comint-clear-buffer)))
-
-(use-package rust-mode
-  :ensure t
-  :hook (rust-mode . eglot-ensure)
-  :config
-                                        ;(rust-enable-format-on-save)
-  (flymake-mode-off)
-  :bind
-  (("C-c C-k" . rust-compile)
-   ("C-c C-r" . rust-run)
-   ("C-c C-t" . rust-test)))
-
-(use-package flycheck-rust
-  :ensure t
-  :init
-  :hook (flycheck-mode . flycheck-rust-setup))
+  (:map eglot-mode-map
+        (("M-RET" . eglot-code-actions)
+         ("C-c C-l" . eglot-format-buffer))))
 
 (use-package eldoc
   :ensure t
@@ -231,26 +275,16 @@
   :config
   (setq eldoc-echo-area-use-multiline-p nil))
 
-(use-package js
-  :custom
-  (js-indent-level 2))
-
-(use-package yaml-mode
-  :ensure t)
-
-(use-package toml-mode
-  :ensure t)
-
 (use-package elpy
   :ensure t
   :config
-  (defun python-format-before-save-hook ()
-    (elpy-format-code))
+  ;; (defun python-format-before-save-hook ()
+  ;;   (elpy-format-code))
 
-  (add-hook 'elpy-mode-hook
-            (lambda () (add-hook 'before-save-hook
-                                 #'python-format-before-save-hook nil
-                                 'local)))
+  ;; (add-hook 'elpy-mode-hook
+  ;;           (lambda () (add-hook 'before-save-hook
+  ;;                                #'python-format-before-save-hook nil
+  ;;                                'local)))
   :config
   (setq elpy-modules '(elpy-module-sane-defaults
                        elpy-module-company
@@ -261,7 +295,77 @@
               ("C-c C-k" . elpy-shell-send-buffer)
               ("C-c C-z" . elpy-shell-switch-to-shell)))
 
-(use-package zig-mode
+(use-package elisp-mode)
+
+(use-package exec-path-from-shell
+  :ensure t
+  :init
+  (exec-path-from-shell-initialize))
+
+(use-package expand-region
+  :ensure t
+  :bind
+  (("C-c '" . er/expand-region)))
+
+(use-package flycheck
+  :ensure t
+  ;; :init
+  ;; (global-flycheck-mode)
+  :bind
+  (("C-c C-e" . flycheck-list-errors)))
+
+(use-package flycheck-rust
+  :ensure t
+  :init
+  :hook (flycheck-mode . flycheck-rust-setup))
+
+(use-package go-mode
+  :ensure t
+  :custom
+  (gofmt-command "~/go/bin/goimports")
+  :hook
+  (before-save . gofmt-before-save))
+
+(use-package htmlize
+  :ensure t)
+
+(use-package imenu
+  :init
+  (add-to-list 'imenu-generic-expression
+               '("Packages" "^\\s-*(use-package\\s-+\\([A-Za-z0-9+-]+\\)" 1)))
+
+;;
+
+
+(use-package js
+  :custom
+  (js-indent-level 2))
+
+(use-package lua-mode
+  :ensure t
+  :custom
+  (lua-default-application "lua"))
+
+(use-package magit
+  :ensure t
+  :init
+  (setq vc-handled-backends nil)
+  :bind ("C-x m" . magit-status))
+
+(use-package magit-svn
+  :ensure t)
+
+(use-package man
+  :custom
+  (Man-notify-method 'pushy))
+
+(use-package multiple-cursors
+  :ensure t
+  :bind
+  (("C-c C-d" . mc/mark-next-like-this)
+   ("C-c C-a" . mc/mark-all-like-this)))
+
+(use-package nhexl-mode
   :ensure t)
 
 (use-package octave
@@ -271,30 +375,98 @@
               ("C-x C-e" . octave-send-line)
               ("C-c C-k" . octave-send-buffer)))
 
-(use-package lua-mode
-  :ensure t
-  :custom
-  (lua-default-application "lua"))
-
-(use-package go-mode
-  :ensure t
-  :init
-  (setq gofmt-command "goimports")
-  :hook
-  (before-save . gofmt-before-save))
-
-;; A saner ediff
-(use-package ediff
-  :init
-  (setq ediff-diff-options "-w")
-  (setq ediff-split-window-function 'split-window-horizontally)
-  (setq ediff-window-setup-function 'ediff-setup-windows-plain))
-
 (use-package orderless
   :ensure t
   :custom
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package org
+  :ensure t
+  :requires htmlize
+  :config
+  ;; (unbind-key "M-e" org-mode-map)
+  (setq org-directory "~/notes"))
+
+(use-package paredit
+  :ensure t
+  :diminish "pe"
+  :hook
+  ((lisp-mode emacs-lisp-mode) . paredit-mode))
+
+(use-package poke-mode
+  :ensure t)
+
+(use-package poke
+  :ensure t)
+
+;; (use-package projectile
+;;   :ensure t
+;;   :init
+;;   (projectile-mode)
+;;   :bind-keymap ("C-c p" . projectile-command-map))
+
+(use-package protobuf-mode
+  :ensure t)
+
+(use-package recentf
+  :init
+  (recentf-mode 1)
+  :custom
+  (recentf-max-saved-items 100))
+
+(use-package restclient
+  :ensure t)
+
+;; (use-package ripgrep
+;;   :ensure t)
+
+(use-package rust-mode
+  :ensure t
+  :bind
+  (:map rust-mode-map
+        (("C-c C-k" . rust-compile)
+         ("C-c C-t " . rust-test))))
+
+
+(use-package savehist
+  :init
+  (savehist-mode 1)
+  :custom
+  (savehist-file (user-data "history")))
+
+(use-package sql
+  :ensure t)
+
+(use-package sql-clickhouse
+  :ensure t
+  :custom
+  (sql-clickhouse-options nil))
+
+(use-package toml-mode
+  :ensure t)
+
+(use-package tree-sitter
+  :ensure t
+  :diminish
+  :init
+  (global-tree-sitter-mode))
+
+(use-package tree-sitter-langs
+  :ensure t)
+
+(use-package undo-tree
+  :ensure t
+  :diminish undo-tree-mode
+  :init
+  (global-undo-tree-mode)
+  :custom
+  (undo-tree-history-directory-alist `(("." . ,(user-data "undo-tree")))))
+
+
+(use-package uniquify
+  :custom
+  (uniquify-buffer-name-style 'forward))
 
 (use-package vertico
   :ensure t
@@ -311,39 +483,41 @@
         ("DEL" . vertico-directory-delete-char)
         ("M-DEL" . vertico-directory-delete-word)))
 
-(use-package consult
+(use-package web-mode
   :ensure t
-  :custom
-  (consult-line-start-from-top t)
-  :bind
-  (("C-s" . consult-line)
-   ("C-x b" . consult-buffer)
-   ("M-y" . consult-yank-pop)))
-
-(use-package projectile
-  :ensure t
+  :mode (("\\.svelte\\'" . web-mode))
   :config
-  (setq projectile-completion-system 'ivy)
-  :init
-  (projectile-mode)
-  :bind-keymap ("C-c p" . projectile-command-map))
+  (setq web-mode-markup-indent-offset 2)
+  (setq web-mode-code-indent-offset 2)
+  (setq web-mode-script-padding 2)
+  (unbind-key (kbd "C-c C-l") web-mode-map))
 
-(use-package undo-tree
-  :ensure t
-  :diminish undo-tree-mode
-  :init
-  (global-undo-tree-mode))
-
-(use-package ripgrep
+(use-package wgrep
   :ensure t)
 
-(use-package expand-region
+(use-package whitespace-cleanup-mode
   :ensure t
-  :bind
-  (("C-c '" . er/expand-region)))
+  :init
+  (global-whitespace-cleanup-mode))
 
-(use-package multiple-cursors
+(use-package winner
+  :init
+  (winner-mode 1))
+
+(use-package windmove
   :ensure t
-  :bind
-  (("C-c C-d" . mc/mark-next-like-this)
-   ("C-c C-a" . mc/mark-all-like-this)))
+  :config
+  (windmove-default-keybindings))
+
+(use-package yaml-mode
+  :ensure t)
+
+(use-package yasnippet
+  :ensure t
+  :config
+  (yas-reload-all)
+  :hook
+  (prog-mode-hook . yas-minor-mode))
+
+(use-package zig-mode
+  :ensure t)
