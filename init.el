@@ -146,6 +146,11 @@
 ;;------------------------------------------------------------------------------
 ;; Packages
 
+(use-package autorevert
+  :diminish
+  :init
+  (global-auto-revert-mode))
+
 ;; (use-package company
 ;;   :ensure t
 ;;   :diminish company-mode
@@ -171,9 +176,7 @@
   (cider-use-overlays nil)
   (cider-repl-display-in-current-window nil)
   (cider-repl-prompt-function #'cider-repl-prompt-abbreviated)
-  (cider-repl-display-help-banner nil)
-  ;;(setq cider-repl-tab-command #'company-indent-or-complete-common)
-  )
+  (cider-repl-display-help-banner nil))
 
 (use-package clojure-mode
   :ensure t
@@ -212,6 +215,7 @@
   (("C-s" . consult-line)
    ("C-x b" . consult-buffer)
    ("C-x i" . consult-imenu)
+   ("M-g g" . consult-goto-line)
    ("M-y" . consult-yank-pop)))
 
 (use-package corfu
@@ -259,9 +263,10 @@
   ((python-mode . eglot-ensure)
    (c-mode . eglot-ensure)
    (c++-mode . eglot-ensure)
-   (java-mode . eglot-ensure)
+   ;(java-mode . eglot-ensure)
    (rust-mode . eglot-ensure)
-   (go-mode . eglot-ensure))
+   (go-mode . eglot-ensure)
+   (typescript-mode . eglot-ensure))
   :bind
   (:map eglot-mode-map
         (("M-RET" . eglot-code-actions)
@@ -307,17 +312,17 @@
   :bind
   (("C-c '" . er/expand-region)))
 
-(use-package flycheck
-  :ensure t
-  ;; :init
-  ;; (global-flycheck-mode)
-  :bind
-  (("C-c C-e" . flycheck-list-errors)))
+;; (use-package flycheck
+;;   :ensure t
+;;   ;; :init
+;;   ;; (global-flycheck-mode)
+;;   :bind
+;;   (("C-c C-e" . flycheck-list-errors)))
 
-(use-package flycheck-rust
-  :ensure t
-  :init
-  :hook (flycheck-mode . flycheck-rust-setup))
+;; (use-package flycheck-rust
+;;   :ensure t
+;;   :init
+;;   :hook (flycheck-mode . flycheck-rust-setup))
 
 (use-package go-mode
   :ensure t
@@ -330,16 +335,27 @@
   :ensure t)
 
 (use-package imenu
-  :init
-  (add-to-list 'imenu-generic-expression
-               '("Packages" "^\\s-*(use-package\\s-+\\([A-Za-z0-9+-]+\\)" 1)))
-
-;;
-
+  :hook
+  (emacs-lisp-mode . (lambda ()
+                       (add-to-list 'imenu-generic-expression
+                                    '("Packages" "^\\s-*(use-package\\s-+\\([A-Za-z0-9+-]+\\)" 1)))))
 
 (use-package js
   :custom
   (js-indent-level 2))
+
+(use-package js2-mode
+  :custom
+  (js2-basic-offset 2))
+
+(use-package json-mode
+  :ensure t)
+
+(use-package jq-mode
+  :ensure t
+  :bind
+  (:map json-mode-map
+        ("C-c C-j" . jq-interactively)))
 
 (use-package lua-mode
   :ensure t
@@ -390,7 +406,7 @@
 
 (use-package paredit
   :ensure t
-  :diminish "pe"
+  :diminish
   :hook
   ((lisp-mode emacs-lisp-mode) . paredit-mode))
 
@@ -414,6 +430,9 @@
   (recentf-mode 1)
   :custom
   (recentf-max-saved-items 100))
+
+(use-package rect
+  :bind ("C-c r" . rectangle-mark-mode))
 
 (use-package restclient
   :ensure t)
@@ -446,13 +465,21 @@
 (use-package toml-mode
   :ensure t)
 
+(use-package transient
+  :defer t
+  :custom
+  (transient-history-file (user-data "transient/history.el"))
+  (transient-values-file (user-data "transient/values.el")))
+
 (use-package tree-sitter
   :ensure t
+  :defer
   :diminish
   :init
   (global-tree-sitter-mode))
 
 (use-package tree-sitter-langs
+  :defer
   :ensure t)
 
 (use-package undo-tree
@@ -462,7 +489,6 @@
   (global-undo-tree-mode)
   :custom
   (undo-tree-history-directory-alist `(("." . ,(user-data "undo-tree")))))
-
 
 (use-package uniquify
   :custom
@@ -483,6 +509,9 @@
         ("DEL" . vertico-directory-delete-char)
         ("M-DEL" . vertico-directory-delete-word)))
 
+(use-package visual-regexp
+  :ensure t)
+
 (use-package web-mode
   :ensure t
   :mode (("\\.svelte\\'" . web-mode))
@@ -497,6 +526,7 @@
 
 (use-package whitespace-cleanup-mode
   :ensure t
+  :diminish
   :init
   (global-whitespace-cleanup-mode))
 
