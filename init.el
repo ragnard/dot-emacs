@@ -170,6 +170,7 @@
 
 (use-package cider
   :ensure t
+  :defer
   :init
   (add-hook 'cider-mode-hook #'eldoc-mode)
   (add-hook 'cider-repl-mode-hook (lambda () (paredit-mode 1)))
@@ -186,8 +187,6 @@
 
 (use-package clojure-mode
   :ensure t
-  :init
-  (add-hook 'clojure-mode-hook (lambda () (paredit-mode 1)))
   :config
   (put-clojure-indent 'match 'defun)
   (put-clojure-indent 'defrecord 'defun)
@@ -199,6 +198,10 @@
   (put-clojure-indent 'POST* 'defun)
   (put-clojure-indent 'PUT* 'defun)
   (put-clojure-indent 'DELETE* 'defun)
+
+  :hook
+  (clojure-mode-hook . paredit-mode)
+
   :custom
   (clojure-indent-style 'align-arguments))
 
@@ -351,6 +354,7 @@
   (js-indent-level 2))
 
 (use-package js2-mode
+  :defer
   :custom
   (js2-basic-offset 2))
 
@@ -375,7 +379,9 @@
   :bind ("C-x m" . magit-status))
 
 (use-package magit-svn
-  :ensure t)
+  :ensure t
+  :after magit
+  :defer)
 
 (use-package man
   :custom
@@ -406,6 +412,7 @@
 (use-package org
   :ensure t
   :requires htmlize
+  :defer
   :config
   ;; (unbind-key "M-e" org-mode-map)
   (setq org-directory "~/notes"))
