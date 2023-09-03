@@ -162,6 +162,12 @@
 ;;   (:map company-mode-map
 ;;         ("TAB" . company-indent-or-complete-common)))
 
+(use-package change-inner
+  :ensure t
+  :bind
+  ("M-i" . change-inner)
+  ("M-o" . change-outer))
+
 (use-package cider
   :ensure t
   :init
