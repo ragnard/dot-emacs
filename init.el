@@ -97,7 +97,7 @@
   (inhibit-startup-screen t)
   (initial-buffer-choice nil)
   (initial-major-mode 'fundamental-mode)
-  (initial-scratch-message "")
+  (initial-scratch-message "Oink!")
 
   ;; files.el
   (backup-directory-alist `(("." . ,(user-data "backups"))))
@@ -139,6 +139,26 @@
   (vertical-border ((t (:background "gray75" :foreground "gray75"))))
   ;; (highlight ((t (:background "lightgray"))))
 
+  :preface
+  (defun next-defun ()
+    (interactive)
+    (beginning-of-defun -1))
+
+  (defun previous-defun ()
+    (interactive)
+    (beginning-of-defun))
+
+  :bind
+  (("M-i" . previous-line)
+   ("M-k" . next-line)
+   ("M-j" . left-char)
+   ("M-l" . right-char)
+   ("M-o" . change-outer)
+
+   :map prog-mode-map
+   ("M-p" . previous-defun)
+   ("M-n" . next-defun))
+
   )
 
 
@@ -163,10 +183,7 @@
 ;;         ("TAB" . company-indent-or-complete-common)))
 
 (use-package change-inner
-  :ensure t
-  :bind
-  ("M-i" . change-inner)
-  ("M-o" . change-outer))
+  :ensure t)
 
 (use-package cider
   :ensure t
@@ -224,7 +241,9 @@
   (("C-s" . consult-line)
    ("C-x b" . consult-buffer)
    ("C-x i" . consult-imenu)
+   ("C-x f" . consult-flymake)
    ("M-g g" . consult-goto-line)
+   ("M-g M-g" . consult-goto-line)
    ("M-y" . consult-yank-pop)))
 
 (use-package corfu
@@ -259,7 +278,6 @@
   (dired-dwim-target t)
   (dired-listing-switches "-ahl --group-directories-first"))
 
-;; A saner ediff
 (use-package ediff
   :custom
   (ediff-diff-options "-w")
@@ -272,7 +290,7 @@
   ((python-mode . eglot-ensure)
    (c-mode . eglot-ensure)
    (c++-mode . eglot-ensure)
-   ;(java-mode . eglot-ensure)
+   ;; (java-mode . eglot-ensure)
    (rust-mode . eglot-ensure)
    (go-mode . eglot-ensure)
    (typescript-mode . eglot-ensure))
