@@ -155,9 +155,12 @@
   :bind
   (("M-i" . previous-line)
    ("M-k" . next-line)
+   ("M-I" . backward-paragraph)
+   ("M-K" . forward-paragraph)
    ("M-j" . left-char)
    ("M-l" . right-char)
-   ("M-o" . change-outer)
+   ("M-o" . forward-word)
+   ("M-u" . backward-word)
 
    :map prog-mode-map
    ("M-p" . previous-defun)
