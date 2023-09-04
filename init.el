@@ -493,6 +493,13 @@
   :custom
   (savehist-file (user-data "history")))
 
+(use-package saveplace
+  :init
+  (save-place-mode 1)
+
+  :custom
+  (save-place-file (user-data "save-place")))
+
 (use-package sql
   :ensure t)
 
