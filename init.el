@@ -149,6 +149,9 @@
     (interactive)
     (beginning-of-defun))
 
+  :config
+  (set-register ?i '(file . "~/.emacs.d/init.el"))
+
   :bind
   (("M-i" . previous-line)
    ("M-k" . next-line)
