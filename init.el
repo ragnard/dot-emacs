@@ -150,7 +150,7 @@
     (beginning-of-defun))
 
   :config
-  (set-register ?i '(file . "~/.emacs.d/init.el"))
+  (set-register ?i '(file . user-init-file))
 
   :bind
   (("M-i" . previous-line)
