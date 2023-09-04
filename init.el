@@ -117,6 +117,7 @@
   (line-number-mode t)
   (next-line-add-newlines nil)
   (save-interprogram-paste-before-kill t)
+  (shift-select-mode nil)
 
   ;; paren.el
   (show-paren-delay 0)
