@@ -311,25 +311,25 @@
   :config
   (setq eldoc-echo-area-use-multiline-p nil))
 
-(use-package elpy
-  :ensure t
-  :config
-  ;; (defun python-format-before-save-hook ()
-  ;;   (elpy-format-code))
+;; (use-package elpy
+;;   :ensure t
+;;   :config
+;;   ;; (defun python-format-before-save-hook ()
+;;   ;;   (elpy-format-code))
 
-  ;; (add-hook 'elpy-mode-hook
-  ;;           (lambda () (add-hook 'before-save-hook
-  ;;                                #'python-format-before-save-hook nil
-  ;;                                'local)))
-  :config
-  (setq elpy-modules '(elpy-module-sane-defaults
-                       elpy-module-company
-                       elpy-module-eldoc
-                       elpy-module-pyvenv))
-  :bind (:map python-mode-map
-              ("C-x C-e" . elpy-shell-send-statement-and-step)
-              ("C-c C-k" . elpy-shell-send-buffer)
-              ("C-c C-z" . elpy-shell-switch-to-shell)))
+;;   ;; (add-hook 'elpy-mode-hook
+;;   ;;           (lambda () (add-hook 'before-save-hook
+;;   ;;                                #'python-format-before-save-hook nil
+;;   ;;                                'local)))
+;;   :config
+;;   (setq elpy-modules '(elpy-module-sane-defaults
+;;                        elpy-module-company
+;;                        elpy-module-eldoc
+;;                        elpy-module-pyvenv))
+;;   :bind (:map python-mode-map
+;;               ("C-x C-e" . elpy-shell-send-statement-and-step)
+;;               ("C-c C-k" . elpy-shell-send-buffer)
+;;               ("C-c C-z" . elpy-shell-switch-to-shell)))
 
 (use-package elisp-mode)
 
@@ -459,6 +459,10 @@
 
 (use-package protobuf-mode
   :ensure t)
+
+(use-package python-mode
+  :ensure t
+  :defer)
 
 (use-package recentf
   :init
