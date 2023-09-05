@@ -513,15 +513,22 @@
   (save-place-file (user-data "save-place")))
 
 (use-package sql
-  :ensure t)
+  :ensure t
+  :defer)
 
 (use-package sql-clickhouse
   :ensure t
+  :defer
   :custom
   (sql-clickhouse-options nil))
 
+(use-package sql-duckdb
+  :load-path "./local"
+  :defer)
+
 (use-package toml-mode
-  :ensure t)
+  :ensure t
+  :defer)
 
 (use-package transient
   :defer t
