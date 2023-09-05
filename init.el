@@ -541,7 +541,10 @@
   :defer
   :diminish
   :init
-  (global-tree-sitter-mode))
+  (global-tree-sitter-mode)
+
+  :custom
+  (tsc-dyn-get-from '(:compilation)))
 
 (use-package tree-sitter-langs
   :defer
