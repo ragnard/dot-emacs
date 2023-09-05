@@ -268,7 +268,8 @@
     (corfu-terminal-mode)))
 
 (use-package csv-mode
-  :ensure t)
+  :ensure t
+  :defer)
 
 (use-package delsel
   :init
@@ -334,7 +335,8 @@
 ;;               ("C-c C-k" . elpy-shell-send-buffer)
 ;;               ("C-c C-z" . elpy-shell-switch-to-shell)))
 
-(use-package elisp-mode)
+(use-package elisp-mode
+  :mode (("\\.el\\'" . emacs-lisp-mode)))
 
 (use-package exec-path-from-shell
   :ensure t
@@ -375,6 +377,7 @@
                                     '("Packages" "^\\s-*(use-package\\s-+\\([A-Za-z0-9+-]+\\)" 1)))))
 
 (use-package js
+  :commands js-mode
   :custom
   (js-indent-level 2))
 
@@ -384,7 +387,8 @@
   (js2-basic-offset 2))
 
 (use-package json-mode
-  :ensure t)
+  :ensure t
+  :mode (("\\.json\\'" . json-mode)))
 
 (use-package jq-mode
   :ensure t
@@ -394,6 +398,7 @@
 
 (use-package lua-mode
   :ensure t
+  :mode (("\\.lua\\'" . lua-mode))
   :custom
   (lua-default-application "lua"))
 
@@ -419,7 +424,8 @@
    ("C-c C-a" . mc/mark-all-like-this)))
 
 (use-package nhexl-mode
-  :ensure t)
+  :ensure t
+  :defer)
 
 (use-package octave
   :ensure t
@@ -449,10 +455,12 @@
   ((lisp-mode emacs-lisp-mode) . paredit-mode))
 
 (use-package poke-mode
-  :ensure t)
+  :ensure t
+  :defer)
 
 (use-package poke
-  :ensure t)
+  :ensure t
+  :commands poke)
 
 ;; (use-package projectile
 ;;   :ensure t
@@ -461,7 +469,8 @@
 ;;   :bind-keymap ("C-c p" . projectile-command-map))
 
 (use-package protobuf-mode
-  :ensure t)
+  :ensure t
+  :mode (("\\.proto\\'" . protobuf-mode)))
 
 (use-package python-mode
   :ensure t
@@ -589,7 +598,8 @@
   (windmove-default-keybindings))
 
 (use-package yaml-mode
-  :ensure t)
+  :ensure t
+  :mode (("\\.ya?ml\\'" . yaml-mode)))
 
 (use-package yasnippet
   :ensure t
@@ -599,4 +609,5 @@
   (prog-mode-hook . yas-minor-mode))
 
 (use-package zig-mode
-  :ensure t)
+  :ensure t
+  :mode (("\\.zig\\'" . zig-mode)))
