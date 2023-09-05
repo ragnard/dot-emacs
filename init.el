@@ -339,7 +339,10 @@
 ;;               ("C-c C-z" . elpy-shell-switch-to-shell)))
 
 (use-package elisp-mode
-  :mode (("\\.el\\'" . emacs-lisp-mode)))
+  :mode (("\\.el\\'" . emacs-lisp-mode))
+  :bind
+  (:map emacs-lisp-mode-map
+        ("C-c C-k" . eval-buffer)))
 
 (use-package exec-path-from-shell
   :ensure t
