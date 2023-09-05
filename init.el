@@ -161,6 +161,9 @@
    ("M-l" . right-char)
    ("M-o" . forward-word)
    ("M-u" . backward-word)
+   ("M-ö" . change-inner)
+   ("M-Ö" . change-outer)
+   ("C-x -" . transpose-frame)
 
    :map prog-mode-map
    ("M-p" . previous-defun)
@@ -535,6 +538,10 @@
   :custom
   (transient-history-file (user-data "transient/history.el"))
   (transient-values-file (user-data "transient/values.el")))
+
+(use-package transpose-frame
+  :ensure t
+  :commands (transpose-frame rotate-frame))
 
 (use-package tree-sitter
   :ensure t
