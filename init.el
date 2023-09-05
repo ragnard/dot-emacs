@@ -161,15 +161,15 @@
    ("M-l" . right-char)
    ("M-o" . forward-word)
    ("M-u" . backward-word)
+   ("M-e" . backward-kill-word)
+   ("M-r" . kill-word)
    ("M-ö" . change-inner)
    ("M-Ö" . change-outer)
    ("C-x -" . transpose-frame)
 
    :map prog-mode-map
    ("M-p" . previous-defun)
-   ("M-n" . next-defun))
-
-  )
+   ("M-n" . next-defun)))
 
 
 
