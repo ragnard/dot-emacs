@@ -181,16 +181,10 @@
   :init
   (global-auto-revert-mode))
 
-;; (use-package company
-;;   :ensure t
-;;   :diminish company-mode
-;;   :commands (company company-indent-or-complete-common)
-;;   :config
-;;   (global-company-mode)
-;;   (setq company-idle-delay nil)
-;;   :bind
-;;   (:map company-mode-map
-;;         ("TAB" . company-indent-or-complete-common)))
+(use-package cape
+  :ensure t
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file))
 
 (use-package change-inner
   :ensure t)
