@@ -462,11 +462,11 @@
   :ensure t
   :commands poke)
 
-;; (use-package projectile
-;;   :ensure t
-;;   :init
-;;   (projectile-mode)
-;;   :bind-keymap ("C-c p" . projectile-command-map))
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode)
+  :bind-keymap ("C-c p" . projectile-command-map))
 
 (use-package protobuf-mode
   :ensure t
