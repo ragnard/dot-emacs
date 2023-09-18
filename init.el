@@ -425,7 +425,9 @@
 
 (use-package nhexl-mode
   :ensure t
-  :defer)
+  :defer
+  :bind
+  ("<f8>" . nhexl-mode))
 
 (use-package octave
   :ensure t
@@ -488,8 +490,8 @@
 (use-package restclient
   :ensure t)
 
-;; (use-package ripgrep
-;;   :ensure t)
+(use-package rg
+  :ensure t)
 
 (use-package rust-mode
   :ensure t
