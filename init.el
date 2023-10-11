@@ -88,6 +88,7 @@
   (use-short-answers t)
   (visible-bell nil)
   (x-stretch-cursor t)
+  (show-trailing-whitespace t)
 
   ;; scroll-bar
   (scroll-bar-mode nil)
@@ -101,8 +102,10 @@
 
   ;; files.el
   (backup-directory-alist `(("." . ,(user-data "backups"))))
+  (backup-by-copying t)
   (delete-old-versions t)
   (large-file-warning-threshold nil)
+  (require-final-newline t)
   (save-abbrevs 'silently)
   (trash-directory "~/.trash")
   (version-control t)
@@ -113,11 +116,14 @@
   (indent-tabs-mode nil)
   (kill-do-not-save-duplicates t)
   (kill-ring-max 500)
-  (kill-whole-line nil)
+  (kill-whole-line t)
   (line-number-mode t)
   (next-line-add-newlines nil)
   (save-interprogram-paste-before-kill t)
   (shift-select-mode nil)
+
+  ;; paragraphs.el
+  (sentence-end-double-space nil)
 
   ;; paren.el
   (show-paren-delay 0)
