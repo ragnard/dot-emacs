@@ -72,9 +72,10 @@
   :custom
 
   ;; C source code
-  (auto-hscroll-mode 'current-line)
+  (auto-hscroll-mode t)
   (auto-save-interval 64)
   (auto-save-timeout 2)
+  (create-lockfiles nil)
   (enable-recursive-minibuffers t)
   ;; (fill-column 78)
   (history-delete-duplicates t)
@@ -88,7 +89,7 @@
   (use-short-answers t)
   (visible-bell nil)
   (x-stretch-cursor t)
-  (show-trailing-whitespace t)
+  (show-trailing-whitespace nil)
 
   ;; scroll-bar
   (scroll-bar-mode nil)
@@ -155,6 +156,10 @@
     (interactive)
     (beginning-of-defun))
 
+  (defun indent-buffer ()
+    (interactive)
+    (indent-region (point-min) (point-max)))
+
   :config
   (set-register ?i `(file . ,user-init-file))
 
@@ -172,6 +177,8 @@
    ("M-ö" . change-inner)
    ("M-Ö" . change-outer)
    ("C-x -" . transpose-frame)
+   ("C-c C-l" . indent-buffer)
+   ("C-c l" . mc/edit-lines)
 
    :map prog-mode-map
    ("M-p" . previous-defun)
@@ -456,6 +463,12 @@
   ;; (unbind-key "M-e" org-mode-map)
   (setq org-directory "~/notes"))
 
+(use-package package-lint
+  :ensure t)
+
+(use-package package-lint-flymake
+  :ensure t)
+
 (use-package paredit
   :ensure t
   :diminish
@@ -495,6 +508,10 @@
 
 (use-package restclient
   :ensure t)
+
+(use-package restclient-jq
+  :ensure t
+  :after json-mode)
 
 (use-package rg
   :ensure t)

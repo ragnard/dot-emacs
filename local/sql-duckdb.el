@@ -1,35 +1,11 @@
+(require 'sql)
+
 ;;;###autoload
 (defun sql-duckdb (&optional buffer)
-  "Run duckdb as an inferior process.
-
-
-If buffer `*SQL*' exists but no process is running, make a new process.
-If buffer exists and a process is running, just switch to buffer
-`*SQL*'.
-
-Interpreter used comes from variable `sql-duckdb-program'.  Login uses
-the variables `sql-user', `sql-password', `sql-database', and
-`sql-server' as defaults, if set.  Additional command line parameters
-can be stored in the list `sql-duckdb-options'.
-
-The buffer is put in SQL interactive mode, giving commands for sending
-input.  See `sql-interactive-mode'.
-
-To set the buffer name directly, use \\[universal-argument]
-before \\[sql-duckdb].  Once session has started,
-\\[sql-rename-buffer] can be called separately to rename the
-buffer.
-
-To specify a coding system for converting non-ASCII characters
-in the input and output to the process, use \\[universal-coding-system-argument]
-before \\[sql-duckdb].  You can also specify this with \\[set-buffer-process-coding-system]
-in the SQL buffer, after you start the process.
-The default comes from `process-coding-system-alist' and
-`default-process-coding-system'.
-
-\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  "Run duckdb using sql-mode."
   (interactive "P")
   (sql-product-interactive 'duckdb buffer))
+
 (defun sql-duckdb-completion-object (sqlbuf _schema)
   (sql-redirect-value sqlbuf "show tables" "^\\(\\sw\\(?:\\sw\\|\\s_\\)*\\)," 1))
 
@@ -54,20 +30,18 @@ Starts `sql-interactive-mode' after doing some setup."
   :version "26.1"
   :group 'SQL)
 
-(add-to-list 'sql-product-alist
-             '(duckdb
-               :name "duckdb"
-               :free-software nil
-               :font-lock sql-mode-sqlite-font-lock-keywords  ;; Use sqlite for now
-               :sqli-program sql-duckdb-program
-               :sqli-options sql-duckdb-options
-               :sqli-login sql-duckdb-login-params
-               :sqli-comint-func sql-comint-sqlite
-               :list-all "show tables"
-               :list-table "describe %s"
-               :completion-object sql-duckdb-completion-object
-               :prompt-regexp "^D "
-               :prompt-length 2
-               :prompt-cont-regexp "^> "))
+(sql-add-product 'duckdb "duckdb"
+                 :free-software nil
+                 :font-lock sql-mode-sqlite-font-lock-keywords  ;; Use sqlite for now
+                 :sqli-program sql-duckdb-program
+                 :sqli-options sql-duckdb-options
+                 :sqli-login sql-duckdb-login-params
+                 :sqli-comint-func #'sql-comint-sqlite
+                 :list-all "show tables"
+                 :list-table "describe %s"
+                 :completion-object #'sql-duckdb-completion-object
+                 :prompt-regexp "^D "
+                 :prompt-length 2
+                 :prompt-cont-regexp "^> ")
 
 (provide 'sql-duckdb)
