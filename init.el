@@ -51,9 +51,9 @@
 
 
 
-;; (defun reload-init ()
-;;   (interactive)
-;;   (org-babel-load-file "~/.emacs.d/init.org"))
+(defun reload-init ()
+  (interactive)
+  (load-file "~/.emacs.d/init.el"))
 
 
 ;;------------------------------------------------------------------------------
