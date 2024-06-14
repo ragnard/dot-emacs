@@ -77,6 +77,7 @@
   (auto-save-timeout 2)
   (create-lockfiles nil)
   (enable-recursive-minibuffers t)
+  (truncate-lines nil)
   ;; (fill-column 78)
   (history-delete-duplicates t)
   (history-length 200)
@@ -240,6 +241,10 @@
   (clojure-indent-style 'align-arguments))
 
 (use-package comint
+  :custom
+  (comint-scroll-to-bottom-on-input t)
+  (comint-move-point-for-output t)
+  (comint-prompt-read-only t)
   :config
   (defun comint-clear-buffer ()
     (interactive)
@@ -302,20 +307,20 @@
   (ediff-split-window-function 'split-window-horizontally)
   (ediff-window-setup-function 'ediff-setup-windows-plain))
 
-(use-package eglot
-  :ensure t
-  :hook
-  ((python-mode . eglot-ensure)
-   (c-mode . eglot-ensure)
-   (c++-mode . eglot-ensure)
-   ;; (java-mode . eglot-ensure)
-   (rust-mode . eglot-ensure)
-   (go-mode . eglot-ensure)
-   (typescript-mode . eglot-ensure))
-  :bind
-  (:map eglot-mode-map
-        (("M-RET" . eglot-code-actions)
-         ("C-c C-l" . eglot-format-buffer))))
+;; (use-package eglot
+;;   :ensure t
+;;   :hook
+;;   ((python-mode . eglot-ensure)
+;;    (c-mode . eglot-ensure)
+;;    (c++-mode . eglot-ensure)
+;;    ;; (java-mode . eglot-ensure)
+;;    (rust-mode . eglot-ensure)
+;;    (go-mode . eglot-ensure)
+;;    (typescript-mode . eglot-ensure))
+;;   :bind
+;;   (:map eglot-mode-map
+;;         (("M-RET" . eglot-code-actions)
+;;          ("C-c C-l" . eglot-format-buffer))))
 
 (use-package eldoc
   :ensure t
@@ -324,26 +329,6 @@
   (("C-c h" . eldoc))
   :config
   (setq eldoc-echo-area-use-multiline-p nil))
-
-;; (use-package elpy
-;;   :ensure t
-;;   :config
-;;   ;; (defun python-format-before-save-hook ()
-;;   ;;   (elpy-format-code))
-
-;;   ;; (add-hook 'elpy-mode-hook
-;;   ;;           (lambda () (add-hook 'before-save-hook
-;;   ;;                                #'python-format-before-save-hook nil
-;;   ;;                                'local)))
-;;   :config
-;;   (setq elpy-modules '(elpy-module-sane-defaults
-;;                        elpy-module-company
-;;                        elpy-module-eldoc
-;;                        elpy-module-pyvenv))
-;;   :bind (:map python-mode-map
-;;               ("C-x C-e" . elpy-shell-send-statement-and-step)
-;;               ("C-c C-k" . elpy-shell-send-buffer)
-;;               ("C-c C-z" . elpy-shell-switch-to-shell)))
 
 (use-package elisp-mode
   :mode (("\\.el\\'" . emacs-lisp-mode))
@@ -414,6 +399,27 @@
   :mode (("\\.lua\\'" . lua-mode))
   :custom
   (lua-default-application "lua"))
+
+(use-package lsp-mode
+  :ensure t
+  :init
+  (setq lsp-keymap-prefix "C-c l")
+  :hook ((rust-mode . lsp)
+         (go-mode . lsp)
+         (c-mode . lsp)
+         (c++-mode . lsp)
+         (typescript-mode . lsp))
+  :commands lsp)
+
+(use-package lsp-pyright
+  :ensure t
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-pyright)
+                          (lsp))))
+
+
+;; (use-package lsp-flycheck
+;;   :ensure t)
 
 (use-package magit
   :ensure t
@@ -539,7 +545,12 @@
 
 (use-package sql
   :ensure t
-  :defer)
+  :defer
+  :preface
+  (defun sql-send-string-goto-eoi (_ _)
+    (comint-goto-process-mark))
+  :config
+  (advice-add 'sql-input-sender :before #'sql-send-string-goto-eoi))
 
 (use-package sql-clickhouse
   :ensure t
@@ -570,10 +581,11 @@
   :defer
   :diminish
   :init
-  (global-tree-sitter-mode)
+  ;(global-tree-sitter-mode)
 
-  :custom
-  (tsc-dyn-get-from '(:compilation)))
+  ;:custom
+  ;(tsc-dyn-get-from '(:compilation))
+  )
 
 (use-package tree-sitter-langs
   :defer
