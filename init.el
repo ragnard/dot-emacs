@@ -21,7 +21,6 @@
           #'(lambda () (report-time-since-load " [after-init]"))
           t)
 
-
 (eval-and-compile
   (defsubst emacs-path (path)
     (expand-file-name path user-emacs-directory))
@@ -185,10 +184,13 @@
   (variable-pitch ((t (:family "Iosevka SS08"))))
   (fixed-pitch ((t (:family "Iosevka SS08"))))
   (cursor ((t (:background "#f38ba8"))))
+  (show-paren-match ((t (:background "#f38ba8"))))
   (vertical-border ((t (:background "#11111b" :foreground "#11111b"))))
   (region ((t (:background "#313244"))))
-  (font-lock-builtin-face ((t (:foreground ,(catppuccin-color 'sapphire))))))
-
+  (font-lock-builtin-face ((t (:foreground ,(catppuccin-color 'sapphire)))))
+  (mode-line ((t (:box (:line-width 1 :color ,(catppuccin-color 'crust))))))
+  (mode-line-active ((t (:box (:line-width 1 :color ,(catppuccin-color 'blue))))))
+  (mode-line-inactive ((t (:box (:line-width 1 :color ,(catppuccin-color 'crust)))))))
 
 ;;------------------------------------------------------------------------------
 ;; Packages
