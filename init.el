@@ -591,6 +591,17 @@ save."
   :config
   (selected-global-mode 1))
 
+(use-package smartparens
+  :ensure smartparens
+  :diminish smartparens-mode
+  :hook (prog-mode text-mode markdown-mode)
+  :bind
+  ("C-<right>" . sp-forward-slurp-sexp)
+  ("C-<left>" . sp-forward-barf-sexp)
+  ("M-s" . sp-splice-sexp)
+  :config
+  (require 'smartparens-config))
+
 (use-package sql
   :ensure t
   :defer
@@ -664,7 +675,9 @@ save."
         ("M-DEL" . vertico-directory-delete-word)))
 
 (use-package visual-regexp
-  :ensure t)
+  :ensure t
+  :bind
+  ("M-%" . vr/query-replace))
 
 (use-package vterm
   :ensure t)
@@ -702,6 +715,7 @@ save."
 
 (use-package yasnippet
   :ensure t
+  :diminish yas-minor-mode
   :config
   (yas-reload-all)
   :hook
