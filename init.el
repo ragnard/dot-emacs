@@ -1,3 +1,4 @@
+;; -*- lexical-binding: t; flycheck-disabled-checkers: (emacs-lisp-checkdoc emacs-lisp-package); -*-
 ;;------------------------------------------------------------------------------
 ;; My init.
 ;;
@@ -10,8 +11,6 @@
       gc-cons-threshold (* 128 1024 1024))
 
 (add-hook 'after-init-hook #'garbage-collect t)
-
-
 
 (defun report-time-since-load (&optional suffix)
   (message "Loading init...done (%.3fs)%s"
@@ -31,7 +30,8 @@
         load-path
         (append (list (emacs-path "use-package"))
                 (delete-dups load-path)
-                (list (emacs-path "lisp")))))
+                (list (emacs-path "lisp"))
+                (list (emacs-path "local")))))
 
 (require 'use-package)
 
@@ -40,15 +40,10 @@
       use-package-compute-statistics nil
       debug-on-error init-file-debug)
 
-
-
 (require 'package)
 
 (add-to-list 'package-archives
              '("melpa" . "https://melpa.org/packages/") t)
-
-
-
 
 
 (defun reload-init ()
@@ -67,7 +62,6 @@
 (defun user-data (dir)
   (expand-file-name dir user-data-directory))
 
-
 (use-package emacs
   :custom
 
@@ -77,7 +71,7 @@
   (auto-save-timeout 2)
   (create-lockfiles nil)
   (enable-recursive-minibuffers t)
-  (truncate-lines nil)
+  (truncate-lines t)
   ;; (fill-column 78)
   (history-delete-duplicates t)
   (history-length 200)
@@ -140,14 +134,6 @@
   ;; cus-edit.el
   (custom-file (user-data "settings.el"))
 
-  :custom-face
-  (default ((t (:family "Iosevka SS08" :height 150))))
-  (variable-pitch ((t (:family "Iosevka SS08"))))
-  (fixed-pitch ((t (:family "Iosevka SS08"))))
-  (cursor ((t (:background "hotpink"))))
-  (vertical-border ((t (:background "gray75" :foreground "gray75"))))
-  ;; (highlight ((t (:background "lightgray"))))
-
   :preface
   (defun next-defun ()
     (interactive)
@@ -186,6 +172,23 @@
    ("M-n" . next-defun)))
 
 
+;;------------------------------------------------------------------------------
+;; Theme
+
+(use-package catppuccin-theme
+  :ensure t
+  :preface
+  (load-theme 'catppuccin :no-confirm)
+
+  :custom-face
+  (default ((t (:family "Iosevka Term SS08" :height 150))))
+  (variable-pitch ((t (:family "Iosevka SS08"))))
+  (fixed-pitch ((t (:family "Iosevka SS08"))))
+  (cursor ((t (:background "#f38ba8"))))
+  (vertical-border ((t (:background "#11111b" :foreground "#11111b"))))
+  (region ((t (:background "#313244"))))
+  (font-lock-builtin-face ((t (:foreground ,(catppuccin-color 'sapphire))))))
+
 
 ;;------------------------------------------------------------------------------
 ;; Packages
@@ -195,13 +198,19 @@
   :init
   (global-auto-revert-mode))
 
+(use-package browse-kill-ring
+  :ensure t)
+
 (use-package cape
   :ensure t
   :init
   (add-to-list 'completion-at-point-functions #'cape-file))
 
-(use-package change-inner
-  :ensure t)
+(use-package claude-code-ide
+  :vc (:url "https://github.com/manzaltu/claude-code-ide.el" :rev :newest)
+  :bind ("C-c c" . claude-code-ide-menu) ; Set your favorite keybinding
+  :config
+  (claude-code-ide-emacs-tools-setup))
 
 (use-package cider
   :ensure t
@@ -299,28 +308,13 @@
   (use-package wdired)
   :custom
   (dired-dwim-target t)
-  (dired-listing-switches "-ahl --group-directories-first"))
+  (dired-listing-switches "-ahlv --group-directories-first"))
 
 (use-package ediff
   :custom
   (ediff-diff-options "-w")
   (ediff-split-window-function 'split-window-horizontally)
   (ediff-window-setup-function 'ediff-setup-windows-plain))
-
-;; (use-package eglot
-;;   :ensure t
-;;   :hook
-;;   ((python-mode . eglot-ensure)
-;;    (c-mode . eglot-ensure)
-;;    (c++-mode . eglot-ensure)
-;;    ;; (java-mode . eglot-ensure)
-;;    (rust-mode . eglot-ensure)
-;;    (go-mode . eglot-ensure)
-;;    (typescript-mode . eglot-ensure))
-;;   :bind
-;;   (:map eglot-mode-map
-;;         (("M-RET" . eglot-code-actions)
-;;          ("C-c C-l" . eglot-format-buffer))))
 
 (use-package eldoc
   :ensure t
@@ -338,20 +332,24 @@
 
 (use-package exec-path-from-shell
   :ensure t
-  :init
-  (exec-path-from-shell-initialize))
+  :config
+  (exec-path-from-shell-initialize)
+  (exec-path-from-shell-copy-env "OPENAI_API_KEY"))
 
 (use-package expand-region
   :ensure t
   :bind
   (("C-c '" . er/expand-region)))
 
-;; (use-package flycheck
-;;   :ensure t
-;;   ;; :init
-;;   ;; (global-flycheck-mode)
-;;   :bind
-;;   (("C-c C-e" . flycheck-list-errors)))
+(use-package flycheck
+  :ensure t
+  :init
+  (global-flycheck-mode)
+  :bind
+  (("C-c C-e" . flycheck-list-errors)))
+
+(use-package flycheck-package
+  :ensure t)
 
 ;; (use-package flycheck-rust
 ;;   :ensure t
@@ -361,9 +359,20 @@
 (use-package go-mode
   :ensure t
   :custom
-  (gofmt-command "~/go/bin/goimports")
+  (gofmt-command "/usr/local/bin/goimports")
   :hook
   (before-save . gofmt-before-save))
+
+(use-package gptel
+  :ensure t
+  :config
+  (setq gptel-api-key (lambda ()
+                        (getenv "OPENAI_API_KEY"))))
+
+(use-package gptel-magit
+  :ensure t
+  :after gptel
+  :hook (magit-mode . gptel-magit-install))
 
 (use-package htmlize
   :ensure t)
@@ -388,6 +397,9 @@
   :ensure t
   :mode (("\\.json\\'" . json-mode)))
 
+(use-package just-mode
+  :ensure t)
+
 (use-package jq-mode
   :ensure t
   :bind
@@ -402,20 +414,32 @@
 
 (use-package lsp-mode
   :ensure t
+  :custom
+  (lsp-completion-provider :none)
+  (lsp-signature-auto-activate nil)
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook ((rust-mode . lsp)
+         (rust-ts-mode . lsp)
          (go-mode . lsp)
+         (go-ts-mode . lsp)
          (c-mode . lsp)
          (c++-mode . lsp)
-         (typescript-mode . lsp))
+         (typescript-mode . lsp)
+         (typescript-ts-mode . lsp)
+         (web-mode . lsp)
+         (python-mode . lsp)
+         (python-ts-mode . lsp))
+  :bind (("M-RET" . lsp-execute-code-action))
   :commands lsp)
 
 (use-package lsp-pyright
   :ensure t
+  :custom
+  (lsp-pyright-langserver-command "basedpyright")
   :hook (python-mode . (lambda ()
-                          (require 'lsp-pyright)
-                          (lsp))))
+                         (require 'lsp-pyright)
+                         (lsp))))
 
 
 ;; (use-package lsp-flycheck
@@ -423,8 +447,6 @@
 
 (use-package magit
   :ensure t
-  :init
-  (setq vc-handled-backends nil)
   :bind ("C-x m" . magit-status))
 
 (use-package magit-svn
@@ -447,13 +469,6 @@
   :defer
   :bind
   ("<f8>" . nhexl-mode))
-
-(use-package octave
-  :ensure t
-  :mode (("\\.m\\'" . octave-mode))
-  :bind (:map octave-mode-map
-              ("C-x C-e" . octave-send-line)
-              ("C-c C-k" . octave-send-buffer)))
 
 (use-package orderless
   :ensure t
@@ -501,7 +516,10 @@
 
 (use-package python-mode
   :ensure t
-  :defer)
+  :defer
+  :custom
+  (python-shell-interpreter "uv")
+  (python-shell-interpreter-args "run python"))
 
 (use-package recentf
   :init
@@ -512,12 +530,17 @@
 (use-package rect
   :bind ("C-c r" . rectangle-mark-mode))
 
-(use-package restclient
+(use-package rego-mode
   :ensure t)
+
+(use-package restclient
+  :ensure t
+  :requires json-mode)
 
 (use-package restclient-jq
   :ensure t
-  :after json-mode)
+  :requires json-mode
+  :after restclient)
 
 (use-package rg
   :ensure t)
@@ -543,6 +566,20 @@
   :custom
   (save-place-file (user-data "save-place")))
 
+(use-package selected
+  :ensure t
+  :demand t
+  :diminish selected-minor-mode
+  :commands selected-minor-mode
+  :bind (:map selected-keymap
+              ("q" . selected-off)
+              ("u" . upcase-region)
+              ("d" . downcase-region)
+              ("w" . count-words-region)
+              ("e" . mc/edit-lines))
+  :config
+  (selected-global-mode 1))
+
 (use-package sql
   :ensure t
   :defer
@@ -557,10 +594,6 @@
   :defer
   :custom
   (sql-clickhouse-options nil))
-
-(use-package sql-duckdb
-  :load-path "./local"
-  :defer)
 
 (use-package toml-mode
   :ensure t
@@ -581,15 +614,16 @@
   :defer
   :diminish
   :init
-  ;(global-tree-sitter-mode)
-
-  ;:custom
-  ;(tsc-dyn-get-from '(:compilation))
+  ;; (global-tree-sitter-mode)
+  ;; :custom
+  ;; (tsc-dyn-get-from '(:compilation))
   )
 
-(use-package tree-sitter-langs
-  :defer
-  :ensure t)
+(use-package treesit-auto
+  :ensure t
+  :commands (global-treesit-auto-mode)
+  :config
+  (global-treesit-auto-mode))
 
 (use-package undo-tree
   :ensure t
@@ -619,6 +653,9 @@
         ("M-DEL" . vertico-directory-delete-word)))
 
 (use-package visual-regexp
+  :ensure t)
+
+(use-package vterm
   :ensure t)
 
 (use-package web-mode
@@ -657,8 +694,12 @@
   :config
   (yas-reload-all)
   :hook
-  (prog-mode-hook . yas-minor-mode))
+  ((lsp-mode . yas-minor-mode)
+   (prog-mode-hook . yas-minor-mode)))
 
 (use-package zig-mode
   :ensure t
   :mode (("\\.zig\\'" . zig-mode)))
+
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)

@@ -15,6 +15,8 @@
 
 ;;; Code:
 
+(require 'sql)
+
 (defcustom sql-trino-program
   "docker"
   "Command to start trino."
@@ -27,7 +29,15 @@
   :group 'SQL)
 
 (defcustom sql-trino-docker-options
-  '("run" "--network=host" "-i" "trinodb/trino:latest" "trino")
+  '("run"
+    "--network=host"
+    "-v"
+    "/etc/pki/ca-trust/extracted/java/cacerts:/opt/java/openjdk/lib/security/cacerts"
+    "-i"
+    "trinodb/trino:latest"
+    "trino"
+    "--external-authentication"
+    )
   "List of additional options for `sql-trino-program'."
   :type '(repeat string)
   :group 'SQL)
