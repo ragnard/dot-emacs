@@ -374,6 +374,10 @@ save."
   :hook
   (before-save . gofmt-before-save))
 
+(use-package goto-address-mode
+  :config
+  (global-goto-address-mode))
+
 (use-package gptel
   :ensure t
   :config
@@ -591,9 +595,11 @@ save."
   :config
   (selected-global-mode 1))
 
-(use-package smartparens
+(use-package smartparens-mode
   :ensure smartparens
+  :pin melpa
   :diminish smartparens-mode
+  :commands smartparens-mode
   :hook (prog-mode text-mode markdown-mode)
   :bind
   ("C-<right>" . sp-forward-slurp-sexp)
