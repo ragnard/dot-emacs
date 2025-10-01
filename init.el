@@ -187,7 +187,6 @@ save."
   :ensure t
   :preface
   (load-theme 'catppuccin :no-confirm)
-
   :custom-face
   (default ((t (:family "Iosevka Term SS08" :height 150))))
   (variable-pitch ((t (:family "Iosevka SS08"))))
@@ -374,7 +373,7 @@ save."
   :hook
   (before-save . gofmt-before-save))
 
-(use-package goto-address-mode
+(use-package goto-addr
   :config
   (global-goto-address-mode))
 
