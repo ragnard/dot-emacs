@@ -144,7 +144,9 @@
 
   (defun indent-buffer ()
     (interactive)
-    (indent-region (point-min) (point-max)))
+    (if (bound-and-true-p lsp-mode)
+        (lsp-format-buffer)
+      (indent-region (point-min) (point-max))))
 
   (defun cleanup-buffer ()
     "Perform a bunch of operations on the whitespace content of a buffer.
@@ -431,6 +433,8 @@ save."
   :custom
   (lsp-completion-provider :none)
   (lsp-signature-auto-activate nil)
+  (lsp-disabled-clients '(semgrep-ls pylsp pyright pyrefly))
+
   :init
   (setq lsp-keymap-prefix "C-c l")
   :hook ((rust-mode . lsp)
@@ -444,17 +448,24 @@ save."
          (web-mode . lsp)
          (python-mode . lsp)
          (python-ts-mode . lsp))
-  :bind (("M-RET" . lsp-execute-code-action))
+  :bind (("M-RET" . lsp-execute-code-action)
+         ("C-c l" . lsp-format-buffer))
   :commands lsp)
 
-(use-package lsp-pyright
-  :ensure t
-  :custom
-  (lsp-pyright-langserver-command "basedpyright")
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-pyright)
-                         (lsp))))
 
+(use-package lsp-java
+  :ensure t
+  :config
+  ;(add-hook 'java-mode-hook 'lsp)
+  )
+
+;; (use-package lsp-pyright
+;;   :ensure t
+;;   :custom
+;;   (lsp-pyright-langserver-command "basedpyright")
+;;   :hook (python-mode . (lambda ()
+;;                          (require 'lsp-pyright)
+;;                          (lsp))))
 
 ;; (use-package lsp-flycheck
 ;;   :ensure t)
@@ -549,6 +560,7 @@ save."
 
 (use-package restclient
   :ensure t
+  :mode (("\\.http\\'" . restclient-mode))
   :requires json-mode)
 
 (use-package restclient-jq
@@ -652,6 +664,11 @@ save."
   :config
   (global-treesit-auto-mode))
 
+(use-package typescript-mode
+  :ensure t
+  :custom
+  (typescript-indent-level 2))
+
 (use-package undo-tree
   :ensure t
   :diminish undo-tree-mode
@@ -687,9 +704,11 @@ save."
 (use-package vterm
   :ensure t)
 
+
 (use-package web-mode
   :ensure t
-  :mode (("\\.svelte\\'" . web-mode))
+  :mode (("\\.svelte\\'" . web-mode)
+         ("\\.vue\\'" . web-mode))
   :config
   (setq web-mode-markup-indent-offset 2)
   (setq web-mode-code-indent-offset 2)
