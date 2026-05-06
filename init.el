@@ -25,12 +25,16 @@
   (defsubst emacs-path (path)
     (expand-file-name path user-emacs-directory))
 
-  (setq package-enable-at-startup nil
-        load-path
-        (append (list (emacs-path "use-package"))
-                (delete-dups load-path)
-                (list (emacs-path "lisp"))
+  (setq load-path
+        (append (delete-dups load-path)
                 (list (emacs-path "local")))))
+
+(require 'package)
+
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+
+(package-initialize)
 
 (require 'use-package)
 
@@ -38,11 +42,6 @@
       use-package-expand-minimally (not init-file-debug)
       use-package-compute-statistics nil
       debug-on-error init-file-debug)
-
-(require 'package)
-
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
 
 
 (defun reload-init ()
@@ -75,18 +74,12 @@
   (history-delete-duplicates t)
   (history-length 200)
   (load-prefer-newer t)
-  (menu-bar-mode nil)
   (message-log-max 16384)
-  (redisplay-dont-pause t)
-  (tool-bar-mode nil)
   (undo-limit 800000)
   (use-short-answers t)
   (visible-bell nil)
   (x-stretch-cursor t)
   (show-trailing-whitespace nil)
-
-  ;; scroll-bar
-  (scroll-bar-mode nil)
 
   ;; startup.el
   (auto-save-list-file-prefix (user-data "auto-save-list/.saves-"))
@@ -107,12 +100,10 @@
 
   ;; simple.el
   (backward-delete-char-untabify-method 'untabify)
-  (column-number-mode t)
   (indent-tabs-mode nil)
   (kill-do-not-save-duplicates t)
   (kill-ring-max 500)
   (kill-whole-line t)
-  (line-number-mode t)
   (next-line-add-newlines nil)
   (save-interprogram-paste-before-kill t)
   (shift-select-mode nil)
@@ -159,6 +150,10 @@ save."
 
   :config
   (set-register ?i `(file . ,user-init-file))
+  (load custom-file 'noerror 'nomessage)
+  (column-number-mode 1)
+  (line-number-mode 1)
+  (scroll-bar-mode -1)
 
   :bind
   (("M-i" . previous-line)
@@ -187,7 +182,10 @@ save."
 
 (use-package catppuccin-theme
   :ensure t
+  :demand t
   :preface
+  (require 'catppuccin-theme)
+  :config
   (load-theme 'catppuccin :no-confirm)
   :custom-face
   (default ((t (:family "Iosevka Term SS08" :height 150))))
@@ -256,7 +254,7 @@ save."
   (put-clojure-indent 'DELETE* 'defun)
 
   :hook
-  (clojure-mode-hook . paredit-mode)
+  (clojure-mode . paredit-mode)
 
   :custom
   (clojure-indent-style 'align-arguments))
@@ -329,7 +327,6 @@ save."
   (ediff-window-setup-function 'ediff-setup-windows-plain))
 
 (use-package eldoc
-  :ensure t
   :diminish eldoc-mode
   :bind
   (("C-c h" . eldoc))
@@ -371,7 +368,7 @@ save."
 (use-package go-mode
   :ensure t
   :custom
-  (gofmt-command "/usr/local/bin/goimports")
+  (gofmt-command "goimports")
   :hook
   (before-save . gofmt-before-save))
 
@@ -394,10 +391,12 @@ save."
   :ensure t)
 
 (use-package imenu
+  :preface
+  (defun my/imenu-add-use-package ()
+    (add-to-list 'imenu-generic-expression
+                 '("Packages" "^\\s-*(use-package\\s-+\\([A-Za-z0-9+-]+\\)" 1)))
   :hook
-  (emacs-lisp-mode . (lambda ()
-                       (add-to-list 'imenu-generic-expression
-                                    '("Packages" "^\\s-*(use-package\\s-+\\([A-Za-z0-9+-]+\\)" 1)))))
+  (emacs-lisp-mode . my/imenu-add-use-package))
 
 (use-package js
   :commands js-mode
@@ -448,8 +447,9 @@ save."
          (web-mode . lsp)
          (python-mode . lsp)
          (python-ts-mode . lsp))
-  :bind (("M-RET" . lsp-execute-code-action)
-         ("C-c l" . lsp-format-buffer))
+  :bind (:map lsp-mode-map
+              ("M-RET" . lsp-execute-code-action)
+              ("C-c l =" . lsp-format-buffer))
   :commands lsp)
 
 
@@ -503,7 +503,6 @@ save."
 
 (use-package org
   :ensure t
-  :requires htmlize
   :defer
   :config
   ;; (unbind-key "M-e" org-mode-map)
@@ -539,12 +538,14 @@ save."
   :ensure t
   :mode (("\\.proto\\'" . protobuf-mode)))
 
-(use-package python-mode
-  :ensure t
+(use-package python
   :defer
   :custom
   (python-shell-interpreter "uv")
   (python-shell-interpreter-args "run python"))
+
+(use-package rainbow-mode
+  :ensure t)
 
 (use-package recentf
   :init
@@ -596,7 +597,6 @@ save."
   :ensure t
   :demand t
   :diminish selected-minor-mode
-  :commands selected-minor-mode
   :bind (:map selected-keymap
               ("q" . selected-off)
               ("u" . upcase-region)
@@ -606,18 +606,18 @@ save."
   :config
   (selected-global-mode 1))
 
-(use-package smartparens-mode
-  :ensure smartparens
-  :pin melpa
-  :diminish smartparens-mode
-  :commands smartparens-mode
-  :hook (prog-mode text-mode markdown-mode)
-  :bind
-  ("C-<right>" . sp-forward-slurp-sexp)
-  ("C-<left>" . sp-forward-barf-sexp)
-  ("M-s" . sp-splice-sexp)
-  :config
-  (require 'smartparens-config))
+;; (use-package smartparens-mode
+;;   :ensure smartparens
+;;   :pin melpa
+;;   :diminish smartparens-mode
+;;   :commands smartparens-mode
+;;   :hook (prog-mode text-mode markdown-mode)
+;;   :bind
+;;   ("C-<right>" . sp-forward-slurp-sexp)
+;;   ("C-<left>" . sp-forward-barf-sexp)
+;;   ("M-s" . sp-splice-sexp)
+;;   :config
+;;   (require 'smartparens-config))
 
 (use-package sql
   :ensure t
@@ -648,19 +648,9 @@ save."
   :ensure t
   :commands (transpose-frame rotate-frame))
 
-(use-package tree-sitter
-  :ensure t
-  :defer
-  :diminish
-  :init
-  ;; (global-tree-sitter-mode)
-  ;; :custom
-  ;; (tsc-dyn-get-from '(:compilation))
-  )
-
 (use-package treesit-auto
   :ensure t
-  :commands (global-treesit-auto-mode)
+  :demand t
   :config
   (global-treesit-auto-mode))
 
@@ -709,11 +699,14 @@ save."
   :ensure t
   :mode (("\\.svelte\\'" . web-mode)
          ("\\.vue\\'" . web-mode))
+  :custom
+  (web-mode-markup-indent-offset 2)
+  (web-mode-code-indent-offset 2)
+  (web-mode-script-padding 2)
+  (web-mode-css-indent-offset 2)
   :config
-  (setq web-mode-markup-indent-offset 2)
-  (setq web-mode-code-indent-offset 2)
-  (setq web-mode-script-padding 2)
-  (unbind-key (kbd "C-c C-l") web-mode-map))
+  (unbind-key (kbd "C-c C-l") web-mode-map)
+  )
 
 (use-package wgrep
   :ensure t)
@@ -729,7 +722,6 @@ save."
   (winner-mode 1))
 
 (use-package windmove
-  :ensure t
   :config
   (windmove-default-keybindings))
 
@@ -744,7 +736,7 @@ save."
   (yas-reload-all)
   :hook
   ((lsp-mode . yas-minor-mode)
-   (prog-mode-hook . yas-minor-mode)))
+   (prog-mode . yas-minor-mode)))
 
 (use-package zig-mode
   :ensure t
